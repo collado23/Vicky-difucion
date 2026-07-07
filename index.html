@@ -1,19 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Umbanda Pro</title>
-<style>
-    body{background:#0a0a1a;color:white;font-family:Arial,sans-serif;padding:10px;margin:0}
-    h1{text-align:center;color:#e94560}
-    .nav{display:flex;gap:5px;margin-bottom:15px;flex-wrap:wrap}
-    .nav button{flex:1;padding:10px;background:#1a1a3e;color:white;border:none;border-radius:5px;font-size:12px}
-    .page{display:none;background:#111128;padding:15px;border-radius:10px}
-    .active{display:block}
-    button{width:100%;padding:12px;margin:5px 0;border:none;border-radius:5px;background:#e94560;color:white;font-weight:bold}
-    textarea{width:100%;padding:10px;background:#0a0a1a;color:white;border:1px solid #333;box-sizing:border-box}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umbanda Pro</title>
+    <style>
+        body { background: #0a0a1a; color: white; font-family: sans-serif; padding: 10px; margin: 0; }
+        h1 { text-align: center; color: #e94560; }
+        .nav { display: flex; gap: 5px; margin: 10px 0; overflow-x: auto; padding-bottom: 5px; }
+        .nav button { flex: 1; padding: 10px; background: #1a1a3e; color: white; border: 1px solid #333; border-radius: 5px; white-space: nowrap; }
+        .page { display: none; background: #111128; padding: 15px; border-radius: 10px; }
+        .active { display: block; }
+        button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-green { background: #2ecc71; color: black; }
+        .btn-blue { background: #3498db; color: white; }
+        textarea, input { width: 100%; padding: 10px; margin: 5px 0; background: #0a0a1a; color: white; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; }
+        img { max-width: 100%; margin-top: 10px; border-radius: 5px; }
+    </style>
 </head>
 <body>
 
@@ -21,19 +24,37 @@
 
 <div class="nav">
     <button onclick="mostrar('voz')">VOZ</button>
+    <button onclick="mostrar('img')">IMAGEN</button>
+    <button onclick="mostrar('ritmo')">RITMO</button>
     <button onclick="mostrar('letra')">LETRA</button>
 </div>
 
 <div id="page-voz" class="page active">
-    <h3>Síntesis de Voz</h3>
+    <h3>Texto para Voz</h3>
     <textarea id="textoVoz" rows="3">Exu, Exu, Exu</textarea>
-    <button onclick="falar()">REPRODUCIR TEXTO</button>
+    <button class="btn-green" onclick="falar()">REPRODUCIR</button>
+</div>
+
+<div id="page-img" class="page">
+    <h3>Cargar Imagen</h3>
+    <input type="file" accept="image/*" onchange="previewImg(event)">
+    <img id="imgPreview">
+</div>
+
+<div id="page-ritmo" class="page">
+    <h3>Instrumentos</h3>
+    <div id="instContainer">
+        <button onclick="addInst('Atabaque')">Atabaque</button>
+        <button onclick="addInst('Tamborim')">Tamborim</button>
+        <button onclick="addInst('Agogo')">Agogo</button>
+    </div>
+    <p>Seleccionados: <span id="listaInst">Nenhum</span></p>
 </div>
 
 <div id="page-letra" class="page">
-    <h3>Notas</h3>
-    <textarea id="letraTexto" rows="5" placeholder="Escribe aquí..."></textarea>
-    <button style="background:#2ecc71" onclick="alert('Guardado en memoria')">GUARDAR</button>
+    <h3>Letra del Punto</h3>
+    <textarea id="letraTexto" rows="5"></textarea>
+    <button class="btn-blue" onclick="alert('Guardado')">GUARDAR</button>
 </div>
 
 <script>
@@ -43,11 +64,25 @@
     }
 
     function falar() {
-        const texto = document.getElementById('textoVoz').value;
-        const speech = new SpeechSynthesisUtterance(texto);
-        speech.lang = 'pt-BR';
-        window.speechSynthesis.speak(speech);
+        const t = document.getElementById('textoVoz').value;
+        const s = new SpeechSynthesisUtterance(t);
+        s.lang = 'pt-BR';
+        window.speechSynthesis.speak(s);
+    }
+
+    function previewImg(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            document.getElementById('imgPreview').src = reader.result;
+        }
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    let instrumentos = [];
+    function addInst(n) {
+        instrumentos.push(n);
+        document.getElementById('listaInst').innerText = instrumentos.join(', ');
     }
 </script>
 </body>
-</html>
+    </html>
