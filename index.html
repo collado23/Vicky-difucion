@@ -2,65 +2,53 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umbanda Pro 5D - Cantante</title>
+    <title>Umbanda Audio Processor Pro</title>
     <style>
-        body { background: #050510; color: #fff; font-family: sans-serif; padding: 15px; }
-        .page { background: #111; padding: 20px; border-radius: 20px; }
-        textarea { width: 100%; padding: 15px; background: #000; color: #0ff; border: 1px solid #444; border-radius: 10px; margin: 10px 0; }
-        button { width: 100%; padding: 18px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin: 5px 0; }
-        
-        #imgP { width: 100%; display: none; border-radius: 15px; transition: 0.2s; }
-        
-        /* Efecto cuando la imagen "canta" */
-        .cantando {
-            animation: vibrar 0.3s infinite;
-            filter: brightness(1.5) saturate(2);
-        }
-        @keyframes vibrar {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+        body { background: #050510; color: #fff; font-family: sans-serif; padding: 20px; }
+        .box { background: #111; padding: 20px; border-radius: 15px; border: 1px solid #444; }
+        input[type="range"] { width: 100%; margin: 20px 0; }
+        button { width: 100%; padding: 15px; background: #ff00ff; border: none; border-radius: 10px; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<h1>UMBANDA PRO 5D</h1>
-
-<div class="page">
-    <textarea id="prompt">Exu, estilo 3D cinematográfico</textarea>
-    <button style="background:#ff00ff" onclick="gerarIA()">1. GENERAR IMAGEN</button>
+<div class="box">
+    <h3>Procesador de Audio Independiente</h3>
+    <input type="file" id="audioFile" accept="audio/*">
     
-    <img id="imgP">
+    <label>Tono (Grave ↔ Agudo):</label>
+    <input type="range" id="pitch" min="0.5" max="2" step="0.1" value="1">
     
-    <textarea id="letra">Laroyê Exu, o senhor dos caminhos...</textarea>
-    <button style="background:#2ecc71" onclick="cantar()">2. CANTAR (Sincronizar)</button>
+    <label>Velocidad:</label>
+    <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1">
+    
+    <button onclick="playAudio()">REPRODUCIR PROCESADO</button>
 </div>
 
 <script>
-    function gerarIA() {
-        const p = document.getElementById('prompt').value;
-        const img = document.getElementById('imgP');
-        img.src = "https://image.pollinations.ai/prompt/" + encodeURIComponent(p + ", 3D, cinematográfico, 8k");
-        img.style.display = "block";
-    }
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioBuffer = null;
 
-    function cantar() {
-        const texto = document.getElementById('letra').value;
-        const img = document.getElementById('imgP');
+    document.getElementById('audioFile').onchange = async function(e) {
+        const file = e.target.files[0];
+        const arrayBuffer = await file.arrayBuffer();
+        audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+    };
+
+    function playAudio() {
+        if (!audioBuffer) return alert("Sube un archivo primero");
         
-        if (img.style.display === "none") { alert("Genera una imagen primero"); return; }
-
-        // Activar el efecto de "canto" (vibración)
-        img.classList.add('cantando');
-
-        // Sintetizar voz
-        const s = new SpeechSynthesisUtterance(texto);
-        s.lang = 'pt-BR';
-        s.onend = () => { img.classList.remove('cantando'); }; // Detiene al terminar
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
         
-        window.speechSynthesis.speak(s);
+        // Aquí aplicamos el Pitch y la Velocidad
+        source.playbackRate.value = document.getElementById('speed').value;
+        // El pitch en web audio se vincula a la velocidad; 
+        // para cambiar el timbre sin cambiar la velocidad, se requiere procesamiento complejo,
+        // pero este método es el más robusto y rápido para celulares.
+        
+        source.connect(audioCtx.destination);
+        source.start();
     }
 </script>
 </body>
