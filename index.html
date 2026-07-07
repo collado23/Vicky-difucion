@@ -1,40 +1,53 @@
-<div id="render-container" style="text-align: center;">
-    <canvas id="myCanvas" width="500" height="300" style="border: 3px solid #ff00ff; border-radius: 20px;"></canvas>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test de Grabación</title>
+</head>
+<body>
+
+<canvas id="miCanvas" width="500" height="300" style="border: 2px solid red;"></canvas>
+
+<br>
+<button onclick="iniciarRender()">1. DIBUJAR IMAGEN</button>
+<button onclick="grabarVideo()">2. GRABAR 5 SEGUNDOS</button>
 
 <script>
-    const canvas = document.getElementById('myCanvas');
+    const canvas = document.getElementById('miCanvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
-    img.src = "https://image.pollinations.ai/prompt/Exu_3D_Cinematico"; // Tu imagen
     
-    // Dibujamos la imagen en el canvas para que sea grabable
-    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    // Cargamos una imagen para probar
+    img.crossOrigin = "anonymous";
+    img.src = "https://image.pollinations.ai/prompt/Exu_Caveira_3D";
 
-    function recordVideo() {
-        // AHORA USAMOS captureStream() SOBRE EL CANVAS REAL
-        const stream = canvas.captureStream(30); 
+    function iniciarRender() {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        alert("Imagen dibujada en el canvas");
+    }
+
+    function grabarVideo() {
+        // Verificamos si el canvas tiene contenido
+        const stream = canvas.captureStream(30);
         const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
         let chunks = [];
         
         recorder.ondataavailable = e => chunks.push(e.data);
-        
         recorder.onstop = () => {
             const blob = new Blob(chunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
-            
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'mi_video_umbanda.webm';
-            a.innerHTML = "⬇️ DESCARGAR VIDEO";
+            a.download = 'prueba.webm';
+            a.textContent = "DESCARGAR AQUÍ";
             a.style.display = "block";
-            a.style.padding = "20px";
-            a.style.background = "#00ff00";
+            a.style.fontSize = "30px";
             document.body.appendChild(a);
         };
 
         recorder.start();
-        alert("Grabando ahora mismo...");
-        setTimeout(() => recorder.stop(), 10000);
+        setTimeout(() => recorder.stop(), 5000);
     }
 </script>
+</body>
+</html>
