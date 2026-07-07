@@ -1,0 +1,19 @@
+name: IA Umbanda Processor
+on:
+  push:
+    paths:
+      - 'input.mp3'
+jobs:
+  ia-processing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Instalar Demucs
+        run: pip install demucs
+      - name: Procesar audio con IA
+        run: python3 -m demucs.separate -n htdemucs --two-stems=vocals input.mp3
+      - name: Subir pistas separadas
+        uses: actions/upload-artifact@v3
+        with:
+          name: pistas-separadas
+          path: separated/htdemucs/input/
