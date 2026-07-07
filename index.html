@@ -2,57 +2,75 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Umbanda Studio - Final Master</title>
+    <title>Umbanda Studio Final</title>
     <style>
-        body { background: #000; color: #fff; margin: 0; padding: 10px; font-family: sans-serif; }
-        #canvas-final { width: 100%; height: 300px; border: 4px solid #ff00ff; border-radius: 20px; overflow: hidden; }
-        #img-visual { width: 100%; height: 100%; object-fit: cover; }
-        .controls { background: #1a1a1a; padding: 20px; border-radius: 20px; margin-top: 10px; }
-        button { width: 100%; padding: 20px; margin-top: 10px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .btn-play { background: #2ecc71; color: white; }
-        .btn-download { background: #e74c3c; color: white; }
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 20px; }
+        #render-canvas { width: 100%; max-width: 500px; height: 300px; border: 3px solid #ff00ff; margin: 0 auto; background: #111; display: flex; align-items: center; justify-content: center; }
+        #img-display { width: 100%; height: 100%; object-fit: cover; }
+        .box { background: #222; padding: 15px; margin-top: 10px; border-radius: 10px; }
+        button { width: 100%; padding: 15px; background: #ff00ff; color: white; border: none; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="canvas-final">
-    <img id="img-visual" src="https://image.pollinations.ai/prompt/Exu_3D_Cinematico" style="display:block;">
+<h1>ESTUDIO UMBANDA PRO</h1>
+
+<div id="render-canvas">
+    <img id="img-display" src="https://image.pollinations.ai/prompt/Exu_3D_Cinematico" alt="Visual">
 </div>
 
-<div class="controls">
-    <button class="btn-play" onclick="iniciarSincronizacion()">1. INICIAR VISUALES</button>
-    <button class="btn-download" onclick="exportarVideo()">2. DESCARGAR VIDEO FINAL (Exportar)</button>
+<div class="box">
+    <input type="file" id="audioUpload" accept="audio/*">
+    <button onclick="startApp()">1. CARGAR Y SINCRONIZAR</button>
+    <button onclick="recordVideo()" style="background: #e74c3c;">2. DESCARGAR VIDEO</button>
 </div>
 
 <script>
-    let mediaRecorder;
-    let recordedChunks = [];
+    let audioCtx, analyser, source;
 
-    // Función para exportar lo que está viendo en pantalla
-    function exportarVideo() {
-        const stream = document.querySelector('#canvas-final').captureStream(30);
-        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+    async function startApp() {
+        const file = document.getElementById('audioUpload').files[0];
+        if (!file) return alert("Por favor, selecciona un archivo de audio primero.");
 
-        mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) recordedChunks.push(event.data);
-        };
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
 
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        source.start();
+        animate();
+    }
+
+    function animate() {
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        const bass = dataArray[2] / 255;
+        document.getElementById('img-display').style.transform = `scale(${1 + bass * 0.4})`;
+        requestAnimationFrame(animate);
+    }
+
+    function recordVideo() {
+        const canvas = document.getElementById('render-canvas');
+        const stream = canvas.captureStream(30);
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        let chunks = [];
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'umbanda_masterpiece.webm';
-            a.click();
-            recordedChunks = [];
+            a.href = url; a.download = 'video_umbanda.webm'; a.click();
         };
-
-        mediaRecorder.start();
-        alert("Grabando video... presiona OK y espera 10 segundos para descargar.");
-        setTimeout(() => mediaRecorder.stop(), 10000); // Graba 10 segundos
+        recorder.start();
+        alert("Grabando... Espera 10 segundos.");
+        setTimeout(() => recorder.stop(), 10000);
     }
-    
-    // ... (Mantén aquí el código anterior de sincronización de audio)
 </script>
 </body>
 </html>
