@@ -2,51 +2,84 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Test de Grabación</title>
+    <title>Umbanda Studio - Producción Total</title>
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 10px; }
+        canvas { border: 3px solid #ff00ff; border-radius: 15px; background: #000; width: 100%; max-width: 500px; }
+        .controls { background: #222; padding: 15px; border-radius: 10px; margin: 10px auto; max-width: 500px; }
+        button { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
 </head>
 <body>
 
-<canvas id="miCanvas" width="500" height="300" style="border: 2px solid red;"></canvas>
+<h1>ESTUDIO UMBANDA PRO</h1>
+<canvas id="miCanvas" width="500" height="300"></canvas>
 
-<br>
-<button onclick="iniciarRender()">1. DIBUJAR IMAGEN</button>
-<button onclick="grabarVideo()">2. GRABAR 5 SEGUNDOS</button>
+<div class="controls">
+    <input type="text" id="prompt" placeholder="Ej: Exu Caveira 3D" style="width:90%; padding:10px;">
+    <button onclick="generarIA()" style="background:#555;">GENERAR IMAGEN IA</button>
+    
+    <input type="file" id="audioFile" accept="audio/*">
+    <button onclick="iniciarTodo()" style="background:#2ecc71;">INICIAR AUDIO Y VISUALES</button>
+    <button onclick="grabarVideo()" style="background:#e74c3c;">GRABAR Y DESCARGAR (10 seg)</button>
+</div>
 
 <script>
     const canvas = document.getElementById('miCanvas');
     const ctx = canvas.getContext('2d');
-    const img = new Image();
-    
-    // Cargamos una imagen para probar
-    img.crossOrigin = "anonymous";
-    img.src = "https://image.pollinations.ai/prompt/Exu_Caveira_3D";
+    let audioCtx, analyser, source, img = new Image();
 
-    function iniciarRender() {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        alert("Imagen dibujada en el canvas");
+    function generarIA() {
+        const p = document.getElementById('prompt').value;
+        img.src = "https://image.pollinations.ai/prompt/" + encodeURIComponent(p + ", 3D Render, 8k");
+        img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+
+    async function iniciarTodo() {
+        const file = document.getElementById('audioFile').files[0];
+        if (!file) return alert("Sube un audio primero");
+
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const data = await file.arrayBuffer();
+        const buffer = await audioCtx.decodeAudioData(data);
+        
+        source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        source.start();
+        animar();
+    }
+
+    function animar() {
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        const bass = dataArray[2] / 255;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const scale = 1 + (bass * 0.3);
+        const w = canvas.width * scale;
+        const h = canvas.height * scale;
+        ctx.drawImage(img, (canvas.width - w)/2, (canvas.height - h)/2, w, h);
+        requestAnimationFrame(animar);
     }
 
     function grabarVideo() {
-        // Verificamos si el canvas tiene contenido
         const stream = canvas.captureStream(30);
         const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
         let chunks = [];
-        
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'prueba.webm';
-            a.textContent = "DESCARGAR AQUÍ";
-            a.style.display = "block";
-            a.style.fontSize = "30px";
-            document.body.appendChild(a);
+            a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
+            a.download = 'produccion_umbanda.webm';
+            a.click();
         };
-
         recorder.start();
-        setTimeout(() => recorder.stop(), 5000);
+        setTimeout(() => recorder.stop(), 10000);
     }
 </script>
 </body>
