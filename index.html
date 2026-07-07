@@ -1,6 +1,19 @@
-function recordVideo() {
-        const canvas = document.getElementById('render-canvas');
-        const stream = canvas.captureStream(30);
+<div id="render-container" style="text-align: center;">
+    <canvas id="myCanvas" width="500" height="300" style="border: 3px solid #ff00ff; border-radius: 20px;"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = "https://image.pollinations.ai/prompt/Exu_3D_Cinematico"; // Tu imagen
+    
+    // Dibujamos la imagen en el canvas para que sea grabable
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    function recordVideo() {
+        // AHORA USAMOS captureStream() SOBRE EL CANVAS REAL
+        const stream = canvas.captureStream(30); 
         const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
         let chunks = [];
         
@@ -10,23 +23,18 @@ function recordVideo() {
             const blob = new Blob(chunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             
-            // FORZAMOS LA DESCARGA CON UN ENLACE MANUAL
             const a = document.createElement('a');
-            a.style.display = 'block';
             a.href = url;
             a.download = 'mi_video_umbanda.webm';
-            a.innerHTML = "⬇️ HACER CLIC AQUÍ PARA DESCARGAR TU VIDEO";
+            a.innerHTML = "⬇️ DESCARGAR VIDEO";
+            a.style.display = "block";
             a.style.padding = "20px";
             a.style.background = "#00ff00";
-            a.style.color = "#000";
-            a.style.marginTop = "10px";
-            a.style.textDecoration = "none";
-            a.style.fontWeight = "bold";
-            
-            document.body.appendChild(a); // Aparecerá un botón verde gigante debajo
+            document.body.appendChild(a);
         };
 
         recorder.start();
-        alert("Grabando... Espera 10 segundos a que termine.");
+        alert("Grabando ahora mismo...");
         setTimeout(() => recorder.stop(), 10000);
     }
+</script>
