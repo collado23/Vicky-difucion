@@ -3,93 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umbanda Pro</title>
+    <title>Umbanda Pro 5D - Cantante</title>
     <style>
-        body { background: #0a0a1a; color: white; font-family: sans-serif; padding: 15px; margin: 0; }
-        h1 { text-align: center; color: #e94560; }
-        .nav { display: flex; gap: 5px; margin: 10px 0; overflow-x: auto; padding-bottom: 5px; }
-        .nav button { flex: 1; padding: 10px; background: #1a1a3e; color: white; border: 1px solid #333; border-radius: 5px; white-space: nowrap; }
-        .page { display: none; background: #111128; padding: 15px; border-radius: 10px; }
-        .active { display: block; }
-        button { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 5px; font-weight: bold; }
-        textarea, input { width: 100%; padding: 10px; margin: 5px 0; background: #0a0a1a; color: white; border: 1px solid #333; border-radius: 5px; box-sizing: border-box; }
-        img { max-width: 100%; margin-top: 10px; border-radius: 5px; display: block; }
-        .lista-box { background: #1a1a3e; padding: 10px; border-radius: 5px; margin-top: 10px; min-height: 20px; }
+        body { background: #050510; color: #fff; font-family: sans-serif; padding: 15px; }
+        .page { background: #111; padding: 20px; border-radius: 20px; }
+        textarea { width: 100%; padding: 15px; background: #000; color: #0ff; border: 1px solid #444; border-radius: 10px; margin: 10px 0; }
+        button { width: 100%; padding: 18px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin: 5px 0; }
+        
+        #imgP { width: 100%; display: none; border-radius: 15px; transition: 0.2s; }
+        
+        /* Efecto cuando la imagen "canta" */
+        .cantando {
+            animation: vibrar 0.3s infinite;
+            filter: brightness(1.5) saturate(2);
+        }
+        @keyframes vibrar {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
-<h1>UMBANDA PRO</h1>
+<h1>UMBANDA PRO 5D</h1>
 
-<div class="nav">
-    <button onclick="mostrar('voz')">VOZ</button>
-    <button onclick="mostrar('img')">IMAGEN</button>
-    <button onclick="mostrar('ritmo')">RITMO</button>
-    <button onclick="mostrar('letra')">LETRA</button>
-</div>
-
-<div id="page-voz" class="page active">
-    <h3>Texto para Voz</h3>
-    <textarea id="textoVoz" rows="3">Exu, Exu, Exu</textarea>
-    <button style="background:#2ecc71" onclick="falar()">REPRODUCIR</button>
-</div>
-
-<div id="page-img" class="page">
-    <h3>Cargar Imagen</h3>
-    <input type="file" accept="image/*" onchange="previewImg(event)">
-    <img id="imgPreview" src="" alt="">
-</div>
-
-<div id="page-ritmo" class="page">
-    <h3>Instrumentos</h3>
-    <button onclick="addInst('Atabaque')">Atabaque</button>
-    <button onclick="addInst('Tamborim')">Tamborim</button>
-    <button onclick="addInst('Agogo')">Agogo</button>
-    <div class="lista-box">
-        <strong>Seleccionados:</strong><br>
-        <span id="listaInst">Nenhum</span>
-    </div>
-    <button style="background:#e94560" onclick="limparRitmo()">LIMPIAR RITMO</button>
-</div>
-
-<div id="page-letra" class="page">
-    <h3>Letra del Punto</h3>
-    <textarea id="letraTexto" rows="5"></textarea>
+<div class="page">
+    <textarea id="prompt">Exu, estilo 3D cinematográfico</textarea>
+    <button style="background:#ff00ff" onclick="gerarIA()">1. GENERAR IMAGEN</button>
+    
+    <img id="imgP">
+    
+    <textarea id="letra">Laroyê Exu, o senhor dos caminhos...</textarea>
+    <button style="background:#2ecc71" onclick="cantar()">2. CANTAR (Sincronizar)</button>
 </div>
 
 <script>
-    function mostrar(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-' + id).classList.add('active');
+    function gerarIA() {
+        const p = document.getElementById('prompt').value;
+        const img = document.getElementById('imgP');
+        img.src = "https://image.pollinations.ai/prompt/" + encodeURIComponent(p + ", 3D, cinematográfico, 8k");
+        img.style.display = "block";
     }
 
-    function falar() {
-        const t = document.getElementById('textoVoz').value;
-        const s = new SpeechSynthesisUtterance(t);
+    function cantar() {
+        const texto = document.getElementById('letra').value;
+        const img = document.getElementById('imgP');
+        
+        if (img.style.display === "none") { alert("Genera una imagen primero"); return; }
+
+        // Activar el efecto de "canto" (vibración)
+        img.classList.add('cantando');
+
+        // Sintetizar voz
+        const s = new SpeechSynthesisUtterance(texto);
         s.lang = 'pt-BR';
+        s.onend = () => { img.classList.remove('cantando'); }; // Detiene al terminar
+        
         window.speechSynthesis.speak(s);
-    }
-
-    function previewImg(event) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('imgPreview').src = e.target.result;
-        }
-        reader.readAsDataURL(event.target.files[0]);
-    }
-
-    let instrumentos = [];
-    function addInst(n) {
-        if (!instrumentos.includes(n)) {
-            instrumentos.push(n);
-            document.getElementById('listaInst').innerText = instrumentos.join(', ');
-        }
-    }
-
-    function limparRitmo() {
-        instrumentos = [];
-        document.getElementById('listaInst').innerText = 'Nenhum';
     }
 </script>
 </body>
-                                                      </html>
+</html>
