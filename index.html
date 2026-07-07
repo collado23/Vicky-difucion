@@ -1,33 +1,52 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Umbanda Pro Mobile</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Umbanda Pro</title>
 <style>
-    body { background: #0a0a1a; color: white; font-family: sans-serif; padding: 20px; }
-    button { width: 100%; padding: 15px; margin: 5px 0; border: none; border-radius: 8px; font-size: 16px; }
-    .btn-red { background: #e94560; color: white; }
-    .btn-blue { background: #3498db; color: white; }
-    .page { display: none; }
-    .active { display: block; }
+    body{background:#0a0a1a;color:white;font-family:Arial,sans-serif;padding:10px;margin:0}
+    h1{text-align:center;color:#e94560}
+    .nav{display:flex;gap:5px;margin-bottom:15px;flex-wrap:wrap}
+    .nav button{flex:1;padding:10px;background:#1a1a3e;color:white;border:none;border-radius:5px;font-size:12px}
+    .page{display:none;background:#111128;padding:15px;border-radius:10px}
+    .active{display:block}
+    button{width:100%;padding:12px;margin:5px 0;border:none;border-radius:5px;background:#e94560;color:white;font-weight:bold}
+    textarea{width:100%;padding:10px;background:#0a0a1a;color:white;border:1px solid #333;box-sizing:border-box}
 </style>
 </head>
 <body>
 
 <h1>UMBANDA PRO</h1>
+
+<div class="nav">
+    <button onclick="mostrar('voz')">VOZ</button>
+    <button onclick="mostrar('letra')">LETRA</button>
+</div>
+
 <div id="page-voz" class="page active">
-    <h3>Pruebas de Audio</h3>
-    <button class="btn-red" onclick="probarAudio()">PROBAR AUDIO</button>
-    <p id="msg">Si escuchas esto, el audio funciona.</p>
+    <h3>Síntesis de Voz</h3>
+    <textarea id="textoVoz" rows="3">Exu, Exu, Exu</textarea>
+    <button onclick="falar()">REPRODUCIR TEXTO</button>
+</div>
+
+<div id="page-letra" class="page">
+    <h3>Notas</h3>
+    <textarea id="letraTexto" rows="5" placeholder="Escribe aquí..."></textarea>
+    <button style="background:#2ecc71" onclick="alert('Guardado en memoria')">GUARDAR</button>
 </div>
 
 <script>
-    function probarAudio() {
-        const msg = new SpeechSynthesisUtterance("Teste de som, Umbanda Pro funcionando");
-        msg.lang = 'pt-BR';
-        window.speechSynthesis.speak(msg);
-        document.getElementById('msg').innerText = "Deberías haber escuchado el sonido.";
+    function mostrar(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + id).classList.add('active');
+    }
+
+    function falar() {
+        const texto = document.getElementById('textoVoz').value;
+        const speech = new SpeechSynthesisUtterance(texto);
+        speech.lang = 'pt-BR';
+        window.speechSynthesis.speak(speech);
     }
 </script>
 </body>
